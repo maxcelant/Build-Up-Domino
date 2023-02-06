@@ -5,8 +5,8 @@ class Player:
         self.graveyard = []
         self.score = 0
         
-    def reset(self):
-        pass
+    def len_of_hand(self):
+        return len(self.hand)
     
     def draw_hand(self, domino_set, hand_cnt):
         num_of_cards = 6 if hand_cnt < 3 else 4
@@ -25,9 +25,12 @@ class Player:
         return False
     
     def remove_from_hand(self, domino_name):
-        for domino in self.hand:
+        d = None
+        for i, domino in enumerate(self.hand):
             if domino.display_name == domino_name:
-                return domino
+                d = domino
+                del self.hand[i]
+        return d
         
     def print_hand(self):
         print("Player: ", end="")

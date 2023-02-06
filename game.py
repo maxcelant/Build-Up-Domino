@@ -36,7 +36,6 @@ class Game:
         # 1 hand means the players draw 6 (or 4) cards
         for hand in range(self.hands):
             self.draw(hand)
-            # * Double check that this is correct!
             player_finished = computer_finished = False
             while not player_finished: # or not computer_finished:
                 if not player_finished:
@@ -47,39 +46,47 @@ class Game:
             
         # self.start_new_round()
         
+    
     def player_turn(self):
         self.board.print_stacks()
         self.player.print_hand()
         
+        # The player is out of dominos to play
+        if self.player.len_of_hand() == 0:
+            print('No more cards to play')
+            return True
+        
+        # Player makes a choice to play a domino or not
         choice = input('Would you like to place a domino? "Yes" or "No": ')
         if choice.lower() == "no":
             return True
         
+        # Check to make sure domino is valid
         domino_name = ""
         while not self.player.domino_in_hand(domino_name):
             domino_name = input('Which domino from your hand do you want to play?: ')
         
+        
         if self.player.domino_in_hand(domino_name):
-            domino = self.player.remove_from_hand(domino_name)
-            
+            # Choose a valid position to put the domino
             position = -1
             while position > 12 or position < 1:
-                
                 position = input('Which stack do you want to add the domino to (1-12)?: ')
                 if bool(re.search('[a-zA-Z]', position)):
                     position = -1
                 position = int(position)
             
-            # * Make sure that they can actually add a domino to that stack
-            
-            #  A non-double tile may be placed on any tile as long as the total number of pips on the tile played 
-            #  is equal to or greater than the tile being covered.
-            
-            self.board.add_domino_to_stack(domino, position)
-            
-        
+            # * Turn this into a loop so that the player doesnt lose his turn
+            # Check the validity of the move
+            if self.board.check_valid(domino, position):
+                # Remove the domino from the players hand
+                domino = self.player.remove_from_hand(domino_name)
+                # Add domino to board
+                self.board.add_domino_to_stack(domino, position)
+            else:
+                print('Invalid placement!')
+
         return False
-        
     
     
     # Update to next round, if the player wants to play again
@@ -104,10 +111,9 @@ class Game:
         random.shuffle(self.white_set)
         random.shuffle(self.black_set)
     
+    
     # Adds the first 6 cards from each shuffled sets to the board
     def add_to_empty_board(self):
-        
-        
         white_set = []
         for i in range(6):
             white_set.append(self.white_set.pop())
@@ -117,6 +123,7 @@ class Game:
         for i in range(6):
             black_set.append(self.black_set.pop())
         self.board.add_to_empty_board(black_set, (6, 12))
+    
     
     # Each player draws dominos, 6 if hands 1-3, 4 if hand 4
     def draw(self, hand):
