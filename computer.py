@@ -1,10 +1,37 @@
-class Player:
-    
+class Computer:
     def __init__(self):
         self.hand = []
         self.graveyard = []
         self.score = 0
         
+    def find_best_move(self, board):
+        best_tile = None
+        best_position = 0  # Keeps track of which stack is best to add to 
+        min_score = 100      # Keeps track of current best stack score
+        top_tiles = [ tiles[-1] for tiles in board.stacks.values() ]
+        
+        # High score bad, low score good
+        for position, board_domino in enumerate(top_tiles):
+            for hand_domino in self.hand:
+                if board.check_valid(hand_domino, position + 1):
+                    score = abs(hand_domino.total_pips - board_domino.total_pips)
+                    if board_domino.set_type == "W": 
+                        score += 10
+                    if score < min_score:
+                        min_score = score
+                        best_position = position
+                        best_tile = hand_domino
+                        
+        if min_score >= 15:
+            return (None, None)
+        
+        return (best_position, best_tile)
+    
+    def print_move(self, domino, position):
+        print(f'Computer adds {domino} to tile stack {position + 1}')
+        
+    
+    
     def size_of_hand(self):
         return len(self.hand)
     
@@ -40,7 +67,7 @@ class Player:
         return d
         
     def print_hand(self):
-        print("Player:   ", end="")
+        print("Computer: ", end="")
         for domino in self.hand:
             print(domino, end=" ")
         print("")
@@ -48,5 +75,3 @@ class Player:
     def print_graveyard(self):
         for domino in self.graveyard:
             print(domino)
-        
-    

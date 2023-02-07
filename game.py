@@ -1,17 +1,18 @@
-import random, re
+import random, re, os
 
 from domino import Domino
 from player import Player
 from board import Board
+from computer import Computer
 
 class Game:
     
     def __init__(self):
         self.player = Player()
-        self.computer = Player()
+        self.computer = Computer()
         self.board = Board() 
         self.round = 1
-        self.hands = 4           # 4 hands in 1 round
+        self.hands = 4
         self.start_new_round()
     
     
@@ -19,75 +20,96 @@ class Game:
     def start_new_round(self):
         self.white_set = []
         self.black_set = []
-        
         self.create_dominos()     # Create the dominos, gives them to each player
-        
         self.shuffle_dominos()    # Shuffles the dominos
-        
         self.add_to_empty_board() # Adds the first 6 dominos (from each player) to the board
-        
         self.play_round()         # Play a round of the game
-        
         self.update_round_count() # Update the number of rounds played
 
     
-    # Play a single round
     def play_round(self):
-        # 1 hand means the players draw 6 (or 4) cards
         for hand in range(self.hands):
             self.draw(hand)
             player_finished = computer_finished = False
             while not player_finished: # or not computer_finished:
                 if not player_finished:
                     player_finished = self.player_turn()
-                # if not computer_finished:
-                #     pass
-                    # computer_finished = self.computer_turn()
+                if not computer_finished:
+                    computer_finished = self.computer_turn()
+                    
+            # * calculate each players score at the end of the hand!
+            # self.calculate_scores()
             
         # self.start_new_round()
         
-    
-    def player_turn(self):
-        self.board.print_stacks()
-        self.player.print_hand()
-        
-        # The player is out of dominos to play
-        if self.player.len_of_hand() == 0:
+    def check_hand_size(self):
+        if self.player.size_of_hand() == 0:
             print('No more cards to play')
             return True
-        
-        # Player makes a choice to play a domino or not
+        return False
+    
+    def is_playing_round(self):
         choice = input('Would you like to place a domino? "Yes" or "No": ')
         if choice.lower() == "no":
             return True
-        
-        # Check to make sure domino is valid
+        return False
+    
+    def get_domino_name(self):
         domino_name = ""
         while not self.player.domino_in_hand(domino_name):
             domino_name = input('Which domino from your hand do you want to play?: ')
+        return domino_name
+    
+    def validate_position(self):
+        position = -1
+        while position > 12 or position < 1:
+            position = input('Which stack do you want to add the domino to (1-12)?: ')
+            if bool(re.search('[a-zA-Z]', position)):
+                position = -1
+            position = int(position)
+        return position
+    
+    def clear_screen_then_print(self):
+        os.system('cls' if os.name == 'nt' else 'clear')
+        self.board.print_stacks()
+        self.player.print_hand()
+        self.computer.print_hand()
+    
+    def player_turn(self):
+        input('Continue...')
+        self.clear_screen_then_print()
         
+        if self.check_hand_size():
+            return True
+        
+        if self.is_playing_round():
+            return True
+        
+        domino_name = self.get_domino_name()
         
         if self.player.domino_in_hand(domino_name):
-            # Choose a valid position to put the domino
-            position = -1
-            while position > 12 or position < 1:
-                position = input('Which stack do you want to add the domino to (1-12)?: ')
-                if bool(re.search('[a-zA-Z]', position)):
-                    position = -1
-                position = int(position)
-            
-            # * Turn this into a loop so that the player doesnt lose his turn
-            # Check the validity of the move
-            if self.board.check_valid(domino, position):
-                # Remove the domino from the players hand
-                domino = self.player.remove_from_hand(domino_name)
-                # Add domino to board
-                self.board.add_domino_to_stack(domino, position)
-            else:
+            position = self.validate_position()
+            domino = self.player.get_domino(domino_name)
+            if not self.board.check_valid(domino, position):
                 print('Invalid placement!')
+                self.player_turn()
+            
+            if self.board.check_valid(domino, position):
+                domino = self.player.remove_from_hand(domino_name)
+                self.board.add_domino_to_stack(domino, position)
 
         return False
     
+    def computer_turn(self):
+        self.clear_screen_then_print()
+        position, domino = self.computer.find_best_move(self.board)
+        if (position is None and domino is None) or (self.computer.size_of_hand() == 0):
+            return True
+        self.computer.print_move(domino, position)
+        self.board.add_domino_to_stack(domino, position + 1)
+        self.computer.remove_from_hand(domino.display_name)
+        return False
+        
     
     # Update to next round, if the player wants to play again
     def update_round_count(self):
