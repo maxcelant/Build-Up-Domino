@@ -17,6 +17,7 @@ class Board:
         position = int(position)
         self.stacks[position-1].append(domino)
         
+    
     def check_valid(self, domino, position):
         top_domino = self.stacks[position - 1][-1]
         # A non-double tile may be placed on any tile as long as the total number of pips on 
@@ -33,6 +34,18 @@ class Board:
             return True
         
         return False
+    
+    def tally_scores(self):
+        player_score = 0
+        computer_score = 0
+        for stack in self.stacks.values():
+            tile = stack[-1]
+            if tile.set_type == 'W':
+                computer_score += tile.total_pips
+            else:
+                player_score += tile.total_pips
+                
+        return player_score, computer_score
             
     
     def print_stacks(self):

@@ -13,7 +13,6 @@ class Game:
         self.board = Board() 
         self.round = 1
         self.hands = 4
-        self.start_new_round()
     
     
     # Resets game
@@ -25,28 +24,102 @@ class Game:
         self.add_to_empty_board() # Adds the first 6 dominos (from each player) to the board
         self.play_round()         # Play a round of the game
         self.update_round_count() # Update the number of rounds played
+        
+    
+    def play(self):
+        
+        while True:
+            self.start_new_round()
+            choice = input('Would you like to play another round? "Yes" or "No": ')
+            if choice.lower() == "no":
+                break
+        
+        self.final_scores()
 
     
     def play_round(self):
+        
+        player_first = self.determine_turn_order()
+        
         for hand in range(self.hands):
             self.draw(hand)
             player_finished = computer_finished = False
-            while not player_finished: # or not computer_finished:
-                if not player_finished:
-                    player_finished = self.player_turn()
-                if not computer_finished:
-                    computer_finished = self.computer_turn()
+            while not player_finished and not computer_finished:
+                if player_first:
+                    if not player_finished:
+                        player_finished = self.player_turn()
+                    if not computer_finished:
+                        computer_finished = self.computer_turn()
+                else:
+                    if not computer_finished:
+                        computer_finished = self.computer_turn()
+                    if not player_finished:
+                        player_finished = self.player_turn()
                     
-            # * calculate each players score at the end of the hand!
-            # self.calculate_scores()
+            # calculate each players score at the end of the hand
+            self.calculate_scores()
             
-        # self.start_new_round()
+        self.reveal_winner_of_round()
         
+    
+    def determine_turn_order(self):
+        player_tile = self.black_set[0]
+        computer_tile = self.white_set[0]
+        
+        player_first = player_tile.total_pips > computer_tile.total_pips
+        if player_first:
+            print(f'Player goes first with a score of {player_tile}')
+        else:
+            print(f'Computer goes first with a score of {computer_tile}')
+        
+        input('Press Enter to Continue...')
+        
+        return player_first
+        
+    
+    def final_scores(self):
+        player_wins = self.player.wins
+        computer_wins = self.computer.wins
+        
+        if player_wins == computer_wins:
+            print(f'COMPUTER AND PLAYER TIE THE TOURNAMENT WITH {player_wins} WINS')
+        elif player_wins > computer_wins:
+            print(f'PLAYER WINS THE TOURNAMENT WITH {player_wins} WINS')
+        else:
+            print(f'COMPUTER WINS THE TOURNAMENT WITH {computer_wins} WINS')
+        
+    
+    def reveal_winner_of_round(self):
+        player_score = self.player.score
+        computer_score = self.computer.score
+        if player_score == computer_score:
+            print(f'ITS A TIE WITH A SCORE OF {player_score} FROM BOTH SIDES')
+        elif player_score > computer_score:
+            print(f'PLAYER WINS THE ROUND WITH A SCORE OF {player_score}')
+            print(f'COMPUTER LOSES THE ROUND WITH A SCORE OF {computer_score}')
+            self.player.increment_wins()
+        else:
+            print(f'COMPUTER WINS THE ROUND WITH A SCORE OF {computer_score}')
+            print(f'PLAYER LOSES THE ROUND WITH A SCORE OF {player_score}')
+            self.computer.increment_wins()
+        
+        
+    
+    def calculate_scores(self):
+        player_score, computer_score = self.board.tally_scores()
+        self.player.update_score(player_score)
+        self.computer.update_score(computer_score)
+        
+        print(f'PLAYER CURRENT SCORE: {self.player.score}')
+        print(f'COMPUTER CURRENT SCORE: {self.computer.score}')
+    
+    
     def check_hand_size(self):
         if self.player.size_of_hand() == 0:
             print('No more cards to play')
             return True
         return False
+    
     
     def is_playing_round(self):
         choice = input('Would you like to place a domino? "Yes" or "No": ')
@@ -54,11 +127,13 @@ class Game:
             return True
         return False
     
+    
     def get_domino_name(self):
         domino_name = ""
         while not self.player.domino_in_hand(domino_name):
             domino_name = input('Which domino from your hand do you want to play?: ')
         return domino_name
+    
     
     def validate_position(self):
         position = -1
@@ -69,11 +144,13 @@ class Game:
             position = int(position)
         return position
     
+    
     def clear_screen_then_print(self):
         os.system('cls' if os.name == 'nt' else 'clear')
         self.board.print_stacks()
         self.player.print_hand()
         self.computer.print_hand()
+    
     
     def player_turn(self):
         input('Continue...')
@@ -99,6 +176,7 @@ class Game:
                 self.board.add_domino_to_stack(domino, position)
 
         return False
+    
     
     def computer_turn(self):
         self.clear_screen_then_print()
