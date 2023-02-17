@@ -29,6 +29,30 @@ class Computer:
         
         return (best_position, best_tile)
     
+    def recommend_move(self, board, player_hand):
+        best_tile = None
+        best_position = 0  # Keeps track of which stack is best to add to 
+        min_score = 100      # Keeps track of current best stack score
+        top_tiles = [ tiles[-1] for tiles in board.stacks.values() ]
+        
+        # High score bad, low score good
+        for position, board_domino in enumerate(top_tiles):
+            for hand_domino in player_hand:
+                if board.check_valid(hand_domino, position + 1):
+                    score = abs(hand_domino.total_pips - board_domino.total_pips)
+                    if board_domino.set_type == "B": 
+                        score += 10
+                    if score < min_score:
+                        min_score = score
+                        best_position = position
+                        best_tile = hand_domino
+                        
+        if min_score >= 15:
+            return (None, None)
+        
+        print(f'Computer recommends tile {best_tile} at {best_position}')
+        input('Continue...')
+    
     
     def increment_wins(self):
         self.wins += 1
@@ -48,6 +72,14 @@ class Computer:
     
     def reset_score(self):
         self.score = 0
+        
+    
+    def print_score(self):
+        print(f'     Score: {self.score}')
+    
+    
+    def print_wins(self):
+        print(f'     Rounds Won: {self.wins}')
     
     
     def size_of_hand(self):
@@ -91,12 +123,14 @@ class Computer:
         
     
     def print_hand(self):
-        print("Computer: ", end="")
+        print("     Hand: ", end="")
         for domino in self.hand:
             print(domino, end=" ")
         print("")
     
     
     def print_graveyard(self):
+        print("     Graveyard: ", end="")
         for domino in self.graveyard:
-            print(domino)
+            print(domino, end=" ")
+        print("")

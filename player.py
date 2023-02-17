@@ -14,6 +14,14 @@ class Player:
         self.score = 0
         
     
+    def print_score(self):
+        print(f'     Score: {self.score}')
+    
+    
+    def print_wins(self):
+        print(f'     Rounds Won: {self.wins}')
+        
+    
     def size_of_hand(self):
         return len(self.hand)
     
@@ -63,14 +71,16 @@ class Player:
         
     
     def print_hand(self):
-        print("Player:   ", end="")
+        print("     Hand: ", end="")
         for domino in self.hand:
             print(domino, end=" ")
         print("")
     
     
     def print_graveyard(self):
+        print("     Graveyard: ", end="")
         for domino in self.graveyard:
-            print(domino)
+            print(domino, end=" ")
+        print("")
         
     

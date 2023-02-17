@@ -148,8 +148,22 @@ class Game:
     def clear_screen_then_print(self):
         os.system('cls' if os.name == 'nt' else 'clear')
         self.board.print_stacks()
+        print('Player: ')
         self.player.print_hand()
+        self.player.print_graveyard()
+        self.player.print_score()
+        self.player.print_wins()
+        print('Computer: ')
         self.computer.print_hand()
+        self.computer.print_graveyard()
+        self.player.print_score()
+        self.player.print_wins()
+        
+        
+    def ask_for_recommendation(self):
+        choice = input('Would you like the Computer to recommend you a move? "Yes" or "No": ')
+        if choice.lower() == "yes":
+            self.computer.recommend_move(self.board, self.player.hand)
     
     
     def player_turn(self):
@@ -158,6 +172,8 @@ class Game:
         
         if self.check_hand_size():
             return True
+        
+        self.ask_for_recommendation()
         
         if self.is_playing_round():
             return True
